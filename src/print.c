@@ -74,7 +74,7 @@ void print_file_matches(const char* path, const char* buf, const int buf_len, co
             in_a_match = TRUE;
             /* We found the start of a match */
             if (cur_match > 0 && opts.context && lines_since_last_match > (opts.before + opts.after + 1)) {
-                fprintf(out_fd, "--\n");
+                fputs("--\n", out_fd);
             }
 
             if (lines_since_last_match > 0 && opts.before > 0) {
@@ -128,11 +128,8 @@ void print_file_matches(const char* path, const char* buf, const int buf_len, co
                         );
                         last_printed_match == cur_match - 1 ? fputc(':', out_fd) : fputc(',', out_fd);
                     }
-                    j = prev_line_offset;
                     /* print up to current char */
-                    for (; j <= i; j++) {
-                        fputc(buf[j], out_fd);
-                    }
+                    fwrite(buf + prev_line_offset, 1, i - prev_line_offset + 1, out_fd);
                 } else {
                     print_line_number(line, ':');
                     if (opts.column) {
@@ -140,26 +137,26 @@ void print_file_matches(const char* path, const char* buf, const int buf_len, co
                     }
 
                     if (printing_a_match && opts.color) {
-                        fprintf(out_fd, "%s", colors_match);
+                        fputs(colors_match, out_fd);
                     }
                     for (j = prev_line_offset; j <= i; j++) {
                         if (j == matches[last_printed_match].end) {
                             if (opts.color) {
-                                fprintf(out_fd, "%s", colors_reset);
+                                fputs(colors_reset, out_fd);
                             }
                             printing_a_match = FALSE;
                             last_printed_match++;
                         }
                         if (j == matches[last_printed_match].start) {
                             if (opts.color) {
-                                fprintf(out_fd, "%s", colors_match);
+                                fputs(colors_match, out_fd);
                             }
                             printing_a_match = TRUE;
                         }
                         fputc(buf[j], out_fd);
                     }
                     if (printing_a_match && opts.color) {
-                        fprintf(out_fd, "%s", colors_reset);
+                        fputs(colors_reset, out_fd);
                     }
                 }
             } else if (lines_since_last_match <= opts.after) {
@@ -169,9 +166,7 @@ void print_file_matches(const char* path, const char* buf, const int buf_len, co
                 }
                 print_line_number(line, sep);
 
-                for (j = prev_line_offset; j < i; j++) {
-                    fputc(buf[j], out_fd);
-                }
+                fwrite(buf + prev_line_offset, 1, i - prev_line_offset, out_fd);
                 fputc('\n', out_fd);
             }
 
@@ -207,7 +202,7 @@ void print_line_number(const int line, const char sep) {
 void print_file_separator() {
     if (first_file_match == 0 && opts.print_break) {
         log_debug("printing file separator");
-        fprintf(out_fd, "\n");
+        fputc('\n', out_fd);
     }
     first_file_match = 0;
 }
